@@ -1,4 +1,5 @@
-# CouchSphinx, a full text indexing extension for CouchDB/CouchRest.
+# CouchSphinx, a full text indexing extension for CouchDB/CouchRest using
+# Sphinx.
 #
 # This file contains the CouchRest::Mixins::Properties module.
 
@@ -6,8 +7,6 @@
 
 module CouchRest # :nodoc:
   module Mixins # :nodoc:
-
-    # CouchSphinx, a full text indexing extension for CouchDB/CouchRest.
 
     # Patches to the CouchRest Properties module: Adds the "attributes" method 
     # plus some fulltext relevant stuff.

@@ -1,4 +1,5 @@
-# CouchSphinx, a full text indexing extension for CouchDB/CouchRest.
+# CouchSphinx, a full text indexing extension for CouchDB/CouchRest using
+# Sphinx.
 #
 # This file contains the CouchSphinx::Indexer::XMLDocset and
 # CouchSphinx::Indexer::XMLDoc classes.

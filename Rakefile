@@ -1,4 +1,5 @@
-# CouchSphinx, a full text indexing extension for CouchDB/CouchRest.
+# CouchSphinx, a full text indexing extension for CouchDB/CouchRest using
+# Sphinx.
 
 require 'rubygems'
 require 'rake/gempackagetask'
@@ -17,7 +18,7 @@ spec = Gem::Specification.new do |spec|
   spec.version = '0.1'
   spec.author = 'Jan Ulbrich'
   spec.email = 'jan.ulbrich @nospam@ holtzbrinck.com'
-  spec.summary = 'A full text indexing extension for CouchDB/CouchRest.'
+  spec.summary = 'A full text indexing extension for CouchDB/CouchRest using Sphinx.'
   spec.files = files
   spec.require_path = '.'
   spec.test_files = Dir.glob('tests/*.rb')
@@ -59,7 +60,8 @@ task :gemspecs do
   # which would break Github gem generation...
 
   template = <<EOF
-# CouchSphinx, a full text indexing extension for CouchDB/CouchRest.
+# CouchSphinx, a full text indexing extension for CouchDB/CouchRest using
+# Sphinx.
 
 Gem::Specification.new do |spec|
   spec.platform = #{spec.platform.inspect}

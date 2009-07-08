@@ -1,4 +1,5 @@
-# CouchSphinx, a full text indexing extension for CouchDB/CouchRest.
+# CouchSphinx, a full text indexing extension for CouchDB/CouchRest using
+# Sphinx.
 
 Gem::Specification.new do |spec|
   spec.platform = "ruby"
@@ -7,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.version = "0.2"
   spec.author = "Jan Ulbrich"
   spec.email = "jan.ulbrich @nospam@ holtzbrinck.com"
-  spec.summary = "A full text indexing extension for CouchDB/CouchRest."
+  spec.summary = "A full text indexing extension for CouchDB/CouchRest using Sphinx."
   spec.files = ["README.rdoc", "couchsphinx.rb", "lib/multi_attribute.rb", "lib/mixins/properties.rb", "lib/mixins/indexer.rb", "lib/indexer.rb"]
   spec.require_path = "."
   spec.has_rdoc = true
