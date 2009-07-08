@@ -1,0 +1,171 @@
+= CouchSphinx
+
+The CouchSphinx library implements an interface between CouchDB and Sphinx 
+supporting CouchRest to automatically index objects in Sphinx. It tries to
+act as transparent as possible: Just an additional method in the CouchRest
+domain specific language and some Sphinx configuration are needed to get
+going.
+
+== Prerequisites
+
+CouchSphinx needs gems CouchRest and Riddle as well as a running Sphinx
+and a CouchDB installation.
+
+  sudo gem sources -a http://gems.github.com  # Only needed once!
+  sudo gem install riddle
+  sudo gem install couchrest
+  sudo gem install ulbrich-couchsphinx
+
+No additional configuraton is needed for interfacing with CouchDB: Setup is
+done when CouchRest is able to talk to the CouchDB server.
+
+A proper "sphinx.conf" file and a script for retrieving index data have to
+be provided for interfacing with Sphinx: Sorry, no UltraSphinx like
+magic... :-) Depending on the amount of data, more than one index may be used
+and indexes may be consolidated from time to time.
+
+This is a sample configuration for a single "main" index:
+
+  searchd {
+    address = 0.0.0.0
+    port = 3312
+
+    log = ./sphinx/searchd.log
+    query_log = ./sphinx/query.log
+    pid_file = ./sphinx/searchd.pid
+  }
+
+  source couchblog {
+    type = xmlpipe2
+  
+    xmlpipe_command = ./sphinxsource.rb
+  }
+
+  index couchblog {
+    source = couchblog
+
+    charset_type = utf-8
+    path = ./sphinx/sphinx_index_main
+  }
+
+The script "sphinxsource.rb" providing the data to index may vary
+depending on the number of CouchDB instances it talks to. This is a simple
+script interfacing with one single instance:
+
+  #!/usr/bin/env ruby
+
+  require 'rubygems'
+  require 'lib/models' # Depends on location of model files
+
+  data = SERVER.default_database.view('CouchSphinxIndex/couchrests_by_timestamp')
+  rows = data['rows'] rescue []
+
+  puts CouchSphinx::Indexer::XMLDocset.new(rows).to_s
+
+== Models
+
+Use method <tt>fulltext_index</tt> to enable indexing of a model. The
+default is to index all attributes but it is recommended to provide a list of
+attribute keys.
+
+A side effect of calling this method is, that CouchSphinx overrides the
+default of letting CouchDB create new IDs: Sphinx only allows numeric IDs and
+CouchSphinx forces new objects with the name of the class, a hyphen and an
+integer as ID (e.g. <tt>Post-38497238</tt>). Again: Only these objects are
+indexed due to internal restrictions of Sphinx.
+
+Sample:
+
+  class Post < CouchRest::ExtendedDocument
+    use_database SERVER.default_database
+
+    property :title
+    property :body
+
+    fulltext_index :title, :body
+  end
+
+Add options <tt>:server</tt> and <tt>:port</tt> to <tt>fulltext_index</tt> if
+the Sphinx server to query is running on a different server (defaults to
+"localhost" with port 3312).
+
+If you are sure your Sphinx is compiled with 64-bit support, you may add
+option <tt>:idsize</tt> with value <tt>64</tt> to generate 64-bit IDs for
+CouchDB (defaults to 32-bits).
+
+Here is a full-featured sample setting additional options:
+
+  fulltext_index :title, :body, :server => 'my.other.server', :port => 3313,
+    :idsize => 64
+
+== Indexing
+
+CouchSphinx also adds a new design document to CouchDB: It needs to collect
+all relevant objects for running the Sphinx indexer and adds its own views
+to do so. Have a look at CouchDB design document "CouchSphinxIndex" for
+details.
+
+Automatically starting the reindexing of objects the moment new objects are
+created can be implemented by adding a save_callback to the model class:
+
+  save_callback :after do |object|
+    `sudo indexer --all --rotate` # Configure sudo to allow this call...
+  end
+
+This or a similar callback should be added to all models needing instant
+indexing. If indexing is not that crucial or load is high, some additional
+checks for the time of the last call should be added. 
+
+== Queries
+
+An additional instance method <tt>by_fulltext_index</tt> is added for each
+fulltext indexed model. This method takes a Sphinx query like
+"foo @title bar", runs it within the context of the current class and returns
+an Array of matching CouchDB documents. Use
+<tt>CouchRest::ExtendedDocument.by_fulltext_index</tt> if you want to find
+any document matching the query and not only a certain class.
+
+Samples:
+
+  Post.by_fulltext_index('first')
+  => [...]
+
+  post = Post.by_fulltext_index('this is @title post').first
+  post.title
+  => "First Post"
+  post.class
+  => Post
+
+Additional options <tt>:match_mode</tt>, <tt>:limit</tt> and
+<tt>:max_matches</tt> can be provided to customize the behaviour of Riddle.
+Option <tt>:raw</tt> can be set to <tt>true</tt> to do no lookup of the
+document IDs but return the raw IDs instead.
+
+Sample:
+
+  Post.by_fulltext_index('my post', :limit => 100)
+
+== Copyright & License
+
+Copyright (c) 2009 Holtzbrinck Digital GmbH, Jan Ulbrich
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
