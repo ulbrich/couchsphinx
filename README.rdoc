@@ -11,10 +11,14 @@ going.
 CouchSphinx needs gems CouchRest and Riddle as well as a running Sphinx
 and a CouchDB installation.
 
-  sudo gem sources -a http://gems.github.com  # Only needed once!
+  sudo gem sources -a http://gemcutter.org  # Only needed once!
   sudo gem install riddle
   sudo gem install couchrest
-  sudo gem install ulbrich-couchsphinx
+  sudo gem install couchsphinx
+
+!!Warning: As Github cancelled gem support, we moved the gem from Github.com
+to Gemcutter.org. If you install from Github, you will not get the newest
+version! See http://gemcutter.org/gems/couchsphinx for details.
 
 No additional configuraton is needed for interfacing with CouchDB: Setup is
 done when CouchRest is able to talk to the CouchDB server.
